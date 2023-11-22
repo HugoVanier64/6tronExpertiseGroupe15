@@ -15,20 +15,39 @@
  * limitations under the License.
  */
 #include "mbed.h"
+#include "bme280.h"
 #include <nsapi_dns.h>
 #include <MQTTClientMbedOs.h>
-
+using namespace std::chrono;
+using namespace sixtron;
 namespace {
 #define GROUP_NUMBER            "group15"
-#define MQTT_TOPIC_PUBLISH      "/estia/group66/downlink"
-#define MQTT_TOPIC_SUBSCRIBE    "/estia/group15/downlink"
+#define MQTT_TOPIC_PUBLISH      "mohask_/feeds/Pressure"
+#define MQTT_TOPIC_SUBSCRIBE    "mohask_/feeds/led"
 #define SYNC_INTERVAL           1
-#define MQTT_CLIENT_ID          "6LoWPAN_Node_"GROUP_NUMBER
+#define MQTT_CLIENT_ID          "6LoWPAN_Node_"GROUP_NUMBERs
+#define ADAFRUIT_IO_USERNAME = "HugoVanier64"
+#define ADAFRUIT_IO_KEY = "aio_CRsU28aQON4hBJP8SKyUBHGX8VT2"
+#define PERIOD_MS 1000ms
+#define BME280_adresse 0x76 << 1
+
+I2C bus(I2C1_SDA,I2C1_SCL); 
+DigitalOut led(LED1);
+InterruptIn Bouton(BUTTON1);
+Thread thread;
+Timer timer;
+float pression = 0.0;
+float humidite = 0.0;
+float temperature = 0.0;
+bool appuie = false;
+bool ledBool = false;
+Mutex mutex_temp;
+Mutex mutex_hum;
+Mutex mutex_press;
+Mutex mutex_print;
+BME280 CapteurBME280(&bus, BME280::I2CAddress::Address1);
 }
 
-// Peripherals
-static DigitalOut led(LED1);
-static InterruptIn button(BUTTON1);
 
 // Network
 NetworkInterface *network;
@@ -36,7 +55,7 @@ MQTTClient *client;
 
 // MQTT
 // const char* hostname = "fd9f:590a:b158::1";
-const char* hostname = "broker.hivemq.com";
+const char* hostname = "io.adafruit.com";
 int port = 1883;
 
 // Error code
@@ -63,7 +82,7 @@ void messageArrived(MQTT::MessageData& md)
     char_payload[message.payloadlen] = '\0'; // String must be null terminated
 
     // Compare our payload with known command strings
-    if (strcmp(char_payload, "ONgroup15") == 0) {
+    if (strcmp(char_payload, "ON") == 0) {
         led = 1;
     }
     else if (strcmp(char_payload, "OFF") == 0) {
@@ -73,6 +92,35 @@ void messageArrived(MQTT::MessageData& md)
         printf("RESETTING ...\n");
         system_reset();
     }
+}
+
+void obtenirPression(){
+	
+	appuie = true;
+}
+
+void threadTemp(){
+
+	while(true){
+
+		timer.start();
+		
+		if(timer.elapsed_time().count() >= 15000000){
+			mutex_temp.lock();
+			float temperature = CapteurBME280.temperature();
+			mutex_temp.unlock();
+			mutex_temp.lock();
+			float humidite = CapteurBME280.humidity();
+			mutex_temp.unlock();
+			mutex_print.lock();
+			printf("Température: %.2f °C \n", temperature);	
+			mutex_print.unlock();
+			mutex_print.lock();
+			printf("Humidité: %.2f % \n", humidite);	
+			mutex_print.unlock();
+			timer.reset();
+		}
+	}
 }
 
 /*!
@@ -99,7 +147,10 @@ static void yield(){
  */
 static int8_t publish() {
 
-    char *mqttPayload = "ONgroup66";
+    
+    char mqttPayload[64];
+    printf("%f",pression);
+    sprintf(mqttPayload, "%.2f", pression);
 
     MQTT::Message message;
     message.qos = MQTT::QOS1;
@@ -122,6 +173,10 @@ static int8_t publish() {
 
 int main()
 {
+
+    CapteurBME280.initialize();
+	CapteurBME280.set_sampling();
+
     printf("Connecting to border router...\n");
 
     /* Get Network configuration */
@@ -169,7 +224,9 @@ int main()
     MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
     data.MQTTVersion = 4;
     data.keepAliveInterval = 25;
-    data.clientID.cstring = MQTT_CLIENT_ID;
+    data.clientID.cstring = "6TRON";
+    data.username.cstring = (char*) "mohask_" ; 
+    data.password.cstring = (char*) "aio_MPsf80wpN7w78bhIFtBHSvZjFVfV"; 
     if (client->connect(data) != 0){
         printf("Connection to MQTT Broker Failed\n");
     }
@@ -182,13 +239,33 @@ int main()
     }
     printf("Subscribed to Topic: %s\n", MQTT_TOPIC_SUBSCRIBE);
 
+
+    thread.start(threadTemp);
+
     yield();
 
     // Yield every 1 second
     id_yield = main_queue.call_every(SYNC_INTERVAL * 1000, yield);
 
     // Publish
-    button.fall(main_queue.event(publish));
+    //Bouton.fall(main_queue.event(publish));
 
-    main_queue.dispatch_forever();
+    //main_queue.dispatch_forever();
+
+    
+
+	while (true) {
+		
+        Bouton.rise(&obtenirPression);
+        
+		if(appuie){
+			mutex_press.lock();
+			float pression = CapteurBME280.pressure();
+			mutex_press.unlock();
+			publish();
+			appuie = false;
+		}
+
+		ThisThread::sleep_for(PERIOD_MS);
+	}
 }

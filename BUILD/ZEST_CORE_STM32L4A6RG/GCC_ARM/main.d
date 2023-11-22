@@ -312,7 +312,7 @@ BUILD\ZEST_CORE_STM32L4A6RG\GCC_ARM\main.o: main.cpp \
  mbed-os/platform/include/platform/mbed_stats.h \
  mbed-os/platform/include/platform/Stream.h \
  mbed-os/platform/include/platform/FileLike.h \
- mbed-os/platform/include/platform/FileBase.h \
+ mbed-os/platform/include/platform/FileBase.h bme280/bme280/bme280.h \
  mbed-os/connectivity/netsocket/include/netsocket/nsapi_dns.h \
  mbed-mqtt/src/MQTTClientMbedOs.h \
  mbed-os/connectivity/netsocket/include/netsocket/TCPSocket.h \
