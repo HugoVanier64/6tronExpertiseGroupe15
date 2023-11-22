@@ -1,0 +1,19 @@
+BUILD\ZEST_CORE_STM32L4A6RG\GCC_ARM\mbed-os\connectivity\nanostack\sal-stack-nanostack\source\Service_Libs\whiteboard\whiteboard.o: \
+ mbed-os\connectivity\nanostack\sal-stack-nanostack\source\Service_Libs\whiteboard\whiteboard.c \
+ BUILD\ZEST_CORE_STM32L4A6RG\GCC_ARM\mbed_config.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/source/nsconfig.h \
+ mbed-os/connectivity/libraries/nanostack-libservice/mbed-client-libservice/ns_types.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/source/configs/cfg_lowpan_router.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/source/configs/base/cfg_lowpan_router.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/source/configs/base/cfg_lowpan_host.h \
+ mbed-os/connectivity/libraries/nanostack-libservice/mbed-client-libservice/nsdynmemLIB.h \
+ mbed-os/connectivity/libraries/nanostack-libservice/mbed-client-libservice/ns_types.h \
+ mbed-os/connectivity/libraries/nanostack-libservice/mbed-client-libservice/nsdynmem_tracker.h \
+ mbed-os/connectivity/libraries/nanostack-libservice/mbed-client-libservice/ns_list.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/source/Common_Protocols/icmpv6.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/source/Common_Protocols/icmpv6_prefix.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/source/Service_Libs/whiteboard/whiteboard.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/nanostack/whiteboard_api.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/nanostack/net_interface.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/nanostack/platform/arm_hal_phy.h \
+ mbed-os/connectivity/nanostack/sal-stack-nanostack/nanostack/platform/os_whiteboard.h
