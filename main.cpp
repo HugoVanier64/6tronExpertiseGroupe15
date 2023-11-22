@@ -23,6 +23,8 @@ using namespace sixtron;
 namespace {
 #define GROUP_NUMBER            "group15"
 #define MQTT_TOPIC_PUBLISH      "mohask_/feeds/Pressure"
+#define MQTT_TOPIC_PUBLISH_TEMP      "mohask_/feeds/temp-and-hum"
+#define MQTT_TOPIC_PUBLISH_HUMIDITY      "mohask_/feeds/humdity"
 #define MQTT_TOPIC_SUBSCRIBE    "mohask_/feeds/led"
 #define SYNC_INTERVAL           1
 #define MQTT_CLIENT_ID          "6LoWPAN_Node_"GROUP_NUMBERs
@@ -95,8 +97,51 @@ void obtenirPression(){
    
     appuie = true;
 }
+ static int8_t publish1(float var) {
  
+   
+    char mqttPayload[12];
+    sprintf(mqttPayload, "%.2f", var);
+ 
+    MQTT::Message message;
+    message.qos = MQTT::QOS1;
+    message.retained = false;
+    message.dup = false;
+    message.payload = (void*)mqttPayload;
+    message.payloadlen = strlen(mqttPayload);
+ 
+    printf("Send: %s to MQTT Broker: %s\n", mqttPayload, hostname);
+    rc = client->publish(MQTT_TOPIC_PUBLISH_TEMP, message);
+    if (rc != 0) {
+        printf("Failed to publish: %d\n", rc);
+        return rc;
+    }
+    return 0;
+}
+
+static int8_t publish2(float var) {
+ 
+   
+    char mqttPayload[12];
+    sprintf(mqttPayload, "%.2f", var);
+ 
+    MQTT::Message message;
+    message.qos = MQTT::QOS1;
+    message.retained = false;
+    message.dup = false;
+    message.payload = (void*)mqttPayload;
+    message.payloadlen = strlen(mqttPayload);
+ 
+    printf("Send: %s to MQTT Broker: %s\n", mqttPayload, hostname);
+    rc = client->publish(MQTT_TOPIC_PUBLISH_HUMIDITY, message);
+    if (rc != 0) {
+        printf("Failed to publish: %d\n", rc);
+        return rc;
+    }
+    return 0;
+}
 void threadTemp(){
+    
  
     while(true){
  
@@ -109,12 +154,8 @@ void threadTemp(){
             mutex_temp.lock();
             float humidite = CapteurBME280.humidity();
             mutex_temp.unlock();
-            mutex_print.lock();
-            printf("Température: %.2f °C \n", temperature);
-            mutex_print.unlock();
-            mutex_print.lock();
-            printf("Humidité: %.2f % \n", humidite);    
-            mutex_print.unlock();
+            publish1(temperature);
+            publish2(humidite);
             timer.reset();
         }
     }
@@ -163,6 +204,7 @@ static int8_t publish(float var) {
     }
     return 0;
 }
+
  
 // main() runs in its own thread in the OS
 // (note the calls to ThisThread::sleep_for below for delays)
